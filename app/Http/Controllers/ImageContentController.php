@@ -13,7 +13,7 @@ class ImageContentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'url' => 'required|url',
+            'image_url' => 'required|url',
             'alt_text' => 'required|string|max:255',
         ]);
 
@@ -39,7 +39,7 @@ class ImageContentController extends Controller
         $imageContent = ImageContent::findOrFail($id);
 
         $validated = $request->validate([
-            'url' => 'sometimes|url',
+            'image_url' => 'sometimes|url',
             'alt_text' => 'sometimes|string|max:255',
         ]);
 
@@ -54,8 +54,13 @@ class ImageContentController extends Controller
     public function destroy($id)
     {
         $imageContent = ImageContent::findOrFail($id);
+
+        // Delete associated PageContent
+        $imageContent->pageContent()->delete(); // Assuming the relationship is set up in the model
+
+        // Delete the ImageContent record
         $imageContent->delete();
 
-        return response()->json(['message' => 'Image content deleted successfully.']);
+        return response()->json(['message' => 'Image content and associated PageContent deleted successfully.']);
     }
 }

@@ -54,8 +54,13 @@ class LinkContentController extends Controller
     public function destroy($id)
     {
         $linkContent = LinkContent::findOrFail($id);
+
+        // Delete associated PageContent
+        $linkContent->pageContent()->delete(); // Assuming the relationship is set up in the model
+
+        // Delete the LinkContent record
         $linkContent->delete();
 
-        return response()->json(['message' => 'Link content deleted successfully.']);
+        return response()->json(['message' => 'Link content and associated PageContent deleted successfully.']);
     }
 }

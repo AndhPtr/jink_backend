@@ -52,8 +52,13 @@ class TextContentController extends Controller
     public function destroy($id)
     {
         $textContent = TextContent::findOrFail($id);
+
+        // Delete associated PageContent
+        $textContent->pageContent()->delete(); // Assuming the relationship is set up in the model
+
+        // Delete the TextContent record
         $textContent->delete();
 
-        return response()->json(['message' => 'Text content deleted successfully.']);
+        return response()->json(['message' => 'Text content and associated PageContent deleted successfully.']);
     }
 }

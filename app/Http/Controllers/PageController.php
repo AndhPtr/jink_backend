@@ -33,12 +33,14 @@ class PageController extends Controller
     {
         // Validate the request
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
             'name' => 'required|string|max:255',
         ]);
 
-        // Create a new page
-        $page = Pages::create($validated);
+        // Create a new page associated with the authenticated user
+        $page = Pages::create([
+            'user_id' => auth()->id(),
+            'name' => $validated['name'],
+        ]);
 
         return response()->json(['message' => 'Page created successfully', 'data' => $page], 201);
     }

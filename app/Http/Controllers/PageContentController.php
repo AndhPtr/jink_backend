@@ -16,18 +16,19 @@ class PageContentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'pages_id' => 'required|exists:pages_content,id',
-            'blockable_type' => 'required|string|in:TextContent,LinkContent,ImageContent',
-            'data' => 'required|array', // Contains the content-specific data
+            'pages_id' => 'required|exists:pages,id', // Ensure the page exists
+            'blockable_type' => 'required|string|in:TextContent,LinkContent,ImageContent', // Validate valid content types
+            'data' => 'required|array', // Content-specific data
         ]);
 
+        // Dynamically resolve the blockable model
         $blockableModel = '\\App\\Models\\' . $validated['blockable_type'];
 
         if (!class_exists($blockableModel)) {
             return response()->json(['error' => 'Invalid blockable type.'], 400);
         }
 
-        // Create the content in the related table
+        // Create the content in the related table (TextContent, LinkContent, or ImageContent)
         $blockable = $blockableModel::create($validated['data']);
 
         // Attach it to PagesContent
@@ -74,14 +75,20 @@ class PageContentController extends Controller
      */
     public function destroy($id)
     {
-        $pagesContent = PageContent::findOrFail($id);
+        // Find the PageContent by ID
+        $pageContent = PageContent::findOrFail($id);
 
-        // Delete the related blockable content
-        $pagesContent->blockable->delete();
+        // Check the blockable type and delete the corresponding content
+        $blockable = $pageContent->blockable; // Get the associated content (TextContent, ImageContent, LinkContent)
 
-        // Delete the PagesContent record
-        $pagesContent->delete();
+        if ($blockable) {
+            // Delete the blockable content (TextContent, ImageContent, LinkContent)
+            $blockable->delete();
+        }
 
-        return response()->json(['message' => 'Content deleted successfully.']);
+        // Now delete the PageContent itself
+        $pageContent->delete();
+
+        return response()->json(['message' => 'Content and associated page content deleted successfully.']);
     }
 }
